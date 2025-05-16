@@ -1,0 +1,352 @@
+/* 基本設定 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #ffffff;
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  padding-bottom: 70px;
+}
+
+#app {
+  flex-grow: 1;
+  padding: 20px;
+  animation: fadeIn 0.5s;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.logo,
+.welcome,
+.activity-grid,
+.feeling-card,
+.plans-header,
+.plan-week,
+.plan-cards,
+.goals-section,
+.plan-detail {
+  margin-bottom: 20px;
+}
+
+.logo {
+  text-align: flex-start;
+  margin-bottom: 20px;
+}
+
+.logo h1 {
+  font-size: 32px;
+  color: #1f4c8a;
+}
+
+.logo span {
+  font-size: 14px;
+  color: #667085;
+}
+
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.activity-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.activity-card:hover {
+  transform: translateY(-5px);
+  transition: transform 0.3s;
+}
+
+.feeling-card,
+.plan-card,
+.goal-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1f4c8a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background: #163f73;
+}
+
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: #fff;
+  box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-around;
+  padding: 14px 0;
+  border-top: 1px solid #ddd;
+}
+
+.nav-item {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.nav-item.active {
+  color: #1f4c8a;
+  font-weight: bold;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.tab {
+  padding: 8px 16px;
+  background: #eee;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #1f4c8a;
+  color: white;
+}
+
+.weekdays {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+.day-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-circle.done {
+  background: #4caf50;
+  color: white;
+}
+
+.button-edit {
+  background: transparent;
+  color: #1f4c8a;
+  border: 1px solid #1f4c8a;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.button-edit:hover {
+  background: #1f4c8a;
+  color: white;
+}
+
+.view-details {
+  color: #1f4c8a;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: right;
+  margin-top: 8px;
+}
+
+.goal-bar {
+  background: #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 8px;
+  margin-top: 5px;
+}
+
+.goal-bar-inner {
+  height: 8px;
+  background: linear-gradient(to right, #6ec1e4, #32c85e);
+}
+
+@media (max-width: 600px) {
+  .activity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.login-btn {
+  display: flex;
+  justify-content: center;
+  /* 水平置中 */
+  align-items: center;
+  /* 垂直置中 */
+  background-color: #007bff;
+  color: white;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-btn:hover {
+  background-color: #0056b3;
+}
+
+
+.register-link {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+.register-link a {
+  color: #1f4c8a;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+.form-container {
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 30px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-container label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.form-container input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 20px;
+  background-color: #1f4c8a;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.centered-btn {
+  display: inline-block;
+  margin: 0 auto;
+  background-color: #1f4c8a;
+  color: white;
+  font-size: 16px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+}
+
+.centered-btn:hover {
+  background-color: #163f73;  /* 滑鼠放上去要變的顏色 */
+}
+
+
+.setting-card {
+  display: block;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  color: #333;
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: background 0.3s;
+}
+
+.setting-card:hover {
+  background: #e6f0ff;
+}
+
+.input-group {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.input-label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.segment-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.centered-btn:hover {
+  background-color: #1f4e89;
+}

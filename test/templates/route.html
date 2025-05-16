@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Route Tracker</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT_f5STZZcZJ94omUsIfjYMNuKCWZe-QY&libraries=geometry"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    #map { height: 90vh; width: 100%; }
+    #controls {
+      padding: 10px;
+      text-align: center;
+      background: #f0f0f0;
+    }
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+  <input type="file" id="gpxFile" accept=".gpx" />
+  <button id="toggleBtn" onclick="toggleTracking()">開始</button>
+  <button id="endBtn" onclick="endSession()" style="display:none;">結束訓練</button>
+  <button id="locateBtn" onclick="relocateUser()">🔄 重新定位</button>
+  <button id="targetBtn" onclick="relocateRoute()">🎯 目標路線</button>
+
+  <div id="status" style="margin-top:10px;">尚未啟動</div>
+  <div id="stats" style="margin-top:10px;">
+    ⏱️ 時間：<span id="elapsedTime">0</span> 秒 ｜ 
+    📏 距離：<span id="totalDistance">0.0</span> 公尺 ｜ 
+    🚴‍♂️ 平均速度：<span id="avgSpeed">0.0</span> km/h
+  </div>
+</div>
+  <div id="map"></div>
+  <script src="/static/js/route.js" defer></script>
+</body>
+</html>
