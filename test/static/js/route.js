@@ -91,6 +91,7 @@ function startTracking() {
   updateStatus("🚶 等待 GPS 精準定位中...");
 
   let gpsReady = false;
+  let gpsStableCount = 0;
 
   if (userCoords.length === 0) {
     sessionStartTime = getLocalTimeString();
@@ -131,12 +132,17 @@ function startTracking() {
 
     if (!gpsReady) {
       if (accuracy < 20) {
-        gpsReady = true;
-        updateStatus("📍 GPS 已穩定，開始記錄路線");
+        gpsStableCount++;
+        updateStatus(`⏳ 準確定位 ${gpsStableCount}/3 次 (精準度 ${Math.round(accuracy)}m)...`);
+        if (gpsStableCount >= 3) {
+          gpsReady = true;
+          updateStatus("📍 GPS 穩定，開始記錄路線");
+        }
       } else {
+        gpsStableCount = 0; // 重設穩定計數
         updateStatus(`⏳ GPS 不穩定 (精準度 ${Math.round(accuracy)}m)，等待中...`);
-        return; // 不處理此點
       }
+      return; // 不記錄這筆
     }
 
     const position = new google.maps.LatLng(latitude, longitude);
