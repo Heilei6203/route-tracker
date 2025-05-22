@@ -88,7 +88,9 @@ function toggleTracking() {
 }
 
 function startTracking() {
-  updateStatus("🚶 正在定位...");
+  updateStatus("🚶 等待 GPS 精準定位中...");
+
+  let gpsReady = false;
 
   if (userCoords.length === 0) {
     sessionStartTime = getLocalTimeString();
@@ -125,7 +127,18 @@ function startTracking() {
   }
 
   watchId = navigator.geolocation.watchPosition((pos) => {
-    const { latitude, longitude } = pos.coords;
+    const { latitude, longitude, accuracy } = pos.coords;
+
+    if (!gpsReady) {
+      if (accuracy < 20) {
+        gpsReady = true;
+        updateStatus("📍 GPS 已穩定，開始記錄路線");
+      } else {
+        updateStatus(`⏳ GPS 不穩定 (精準度 ${Math.round(accuracy)}m)，等待中...`);
+        return; // 不處理此點
+      }
+    }
+
     const position = new google.maps.LatLng(latitude, longitude);
     userCoords.push(position);
     userPolyline.setPath(userCoords);
@@ -167,6 +180,7 @@ function startTracking() {
     timeout: 5000
   });
 }
+
 
 function stopTracking() {
   if (watchId) {
