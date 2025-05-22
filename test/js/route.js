@@ -6,92 +6,92 @@ let routePolyline, userPolyline;
 let isTracking = false;
 let watchId = null;
 let startTime = null;
+let sessionStartTime = null;
 let elapsedSeconds = 0;
 let timerInterval = null;
 let isTimerRunning = false;
 let totalDistance = 0;
+let averageSpeed = 0;
 
-function initMap() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const userLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-
-      map = new google.maps.Map(document.getElementById('map'), {
-        center: userLocation,
-        zoom: 17,
-      });
-    }, () => {
-      fallbackInit();
-    });
-  } else {
-    fallbackInit();
+window.initMap = function () {
+  const polylineStr = localStorage.getItem("direction_polyline");
+  if (!polylineStr) {
+    updateStatus("❌ 無法載入路線資料");
+    return;
   }
-}
 
-function fallbackInit() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: 25.034, lng: 121.5645 },
-    zoom: 15,
+  const decodedPath = google.maps.geometry.encoding.decodePath(polylineStr);
+  if (decodedPath.length < 2) {
+    updateStatus("❌ 路線資料不足");
+    return;
+  }
+
+  routeCoords = decodedPath.map(latlng => ({ lat: latlng.lat(), lng: latlng.lng() }));
+
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: decodedPath[0],
+    zoom: 15
   });
-}
 
-function loadGpx(file) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const text = e.target.result;
+  routePolyline = new google.maps.Polyline({
+    path: decodedPath,
+    map: map,
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.9,
+    strokeWeight: 7
+  });
 
-    // 使用內建 DOMParser 解析 XML 字串
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(text, "application/xml");
+  const bounds = new google.maps.LatLngBounds();
+  decodedPath.forEach(p => bounds.extend(p));
+  map.fitBounds(bounds);
 
-    const trkpts = xmlDoc.getElementsByTagName("trkpt");
-    if (!trkpts.length) {
-      updateStatus("❌ GPX 中找不到任何 trkpt 路徑點");
-      return;
-    }
+  new google.maps.Marker({
+    position: decodedPath[0],
+    map: map,
+    label: "起點",
+    icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+  });
 
-    routeCoords = Array.from(trkpts).map(pt => ({
-      lat: parseFloat(pt.getAttribute("lat")),
-      lng: parseFloat(pt.getAttribute("lon")),
-    }));
+  new google.maps.Marker({
+    position: decodedPath[decodedPath.length - 1],
+    map: map,
+    label: "終點",
+    icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+  });
 
-    updateStatus(`✅ GPX 載入成功，共 ${routeCoords.length} 點`);
-
-    if (routePolyline) routePolyline.setMap(null);
-    routePolyline = new google.maps.Polyline({
-      path: routeCoords,
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const { latitude, longitude } = pos.coords;
+    const position = new google.maps.LatLng(latitude, longitude);
+    userMarker = new google.maps.Marker({
+      position,
       map,
-      strokeColor: "#FF0000",
-      strokeOpacity: 1.0,
-      strokeWeight: 3,
+      title: "你的位置",
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: '#4285F4',
+        fillOpacity: 1,
+        strokeWeight: 2,
+        strokeColor: 'white',
+      }
     });
-
-    if (routeCoords.length === 1) {
-      map.setCenter(routeCoords[0]);
-      map.setZoom(17);
-    } else {
-      const bounds = new google.maps.LatLngBounds();
-      routeCoords.forEach(coord => bounds.extend(coord));
-      map.fitBounds(bounds);
-    }
-  };
-
-  reader.readAsText(file);
-}
+  }, (err) => {
+    updateStatus("⚠️ 目前位置讀取失敗：" + err.message);
+  });
+};
 
 function toggleTracking() {
   isTracking = !isTracking;
   document.getElementById('toggleBtn').textContent = isTracking ? "暫停" : "開始";
   document.getElementById('endBtn').style.display = 'inline-block';
-
   isTracking ? startTracking() : stopTracking();
 }
 
 function startTracking() {
+  updateStatus("🚶 正在定位...");
+
   if (userCoords.length === 0) {
+    sessionStartTime = getLocalTimeString();
     elapsedSeconds = 0;
     totalDistance = 0;
     document.getElementById("elapsedTime").textContent = '0';
@@ -118,7 +118,8 @@ function startTracking() {
 
       document.getElementById("elapsedTime").textContent = totalElapsed;
       const avg = totalDistance / totalElapsed;
-      document.getElementById("avgSpeed").textContent = (avg * 3.6).toFixed(1);
+      averageSpeed = avg * 3.6;
+      document.getElementById("avgSpeed").textContent = averageSpeed.toFixed(1);
     }, 1000);
     isTimerRunning = true;
   }
@@ -156,11 +157,7 @@ function startTracking() {
       }
     }
 
-    const onRoute = routeCoords.some(p => {
-      const routePoint = new google.maps.LatLng(p.lat, p.lng);
-      return google.maps.geometry.spherical.computeDistanceBetween(position, routePoint) < 10;
-    });
-
+    const onRoute = google.maps.geometry.poly.isLocationOnEdge(position, routePolyline, 0.0001);
     updateStatus(onRoute ? "✅ 在路線上" : "❌ 偏離路線");
   }, (err) => {
     updateStatus("❌ 定位錯誤：" + err.message);
@@ -188,93 +185,58 @@ function stopTracking() {
 }
 
 function endSession() {
-  stopTracking();
+  const confirmEnd = window.confirm("確認結束訓練？");
+  if (!confirmEnd) return;
 
-  const elapsed = elapsedSeconds;
-  const avg = totalDistance / elapsed;
-
-  const summary = {
-    distance: totalDistance.toFixed(1),
-    duration: elapsed,
-    avgSpeed: (avg * 3.6).toFixed(1),
-    timestamp: new Date().toISOString()
-  };
-
-  localStorage.setItem("latestRide", JSON.stringify(summary));
-
-  // ✅ 返回上層頁面
-  window.location.href = "../";
-}
-
-function relocateUser() {
-  if (!map) return;
-
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const userLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-
-      map.setCenter(userLocation);
-      map.setZoom(17);
-
-      if (userMarker) {
-        userMarker.setPosition(userLocation);
-      } else {
-        userMarker = new google.maps.Marker({
-          position: userLocation,
-          map,
-          title: "你的位置",
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: '#4285F4',
-            fillOpacity: 1,
-            strokeWeight: 2,
-            strokeColor: 'white',
-          }
-        });
-      }
-
-      updateStatus("📍 已重新定位使用者位置");
-    }, () => {
-      updateStatus("❌ 無法取得目前位置");
-    });
-  } else {
-    updateStatus("❌ 此瀏覽器不支援定位功能");
-  }
-}
-
-function relocateRoute() {
-  if (!map) return;
-
-  if (!routeCoords.length) {
-    updateStatus("❌ 尚未載入任何 GPX 路線");
+  if (!sessionStartTime) {
+    location.href = '/';
     return;
   }
 
-  if (routeCoords.length === 1) {
-    map.setCenter(routeCoords[0]);
-    map.setZoom(17);
-  } else {
-    const bounds = new google.maps.LatLngBounds();
-    routeCoords.forEach(coord => bounds.extend(coord));
-    map.fitBounds(bounds);
-  }
+  stopTracking();
 
-  updateStatus("🎯 已定位至目標路線");
+  const endTime = new Date();
+  const filename = sessionStartTime.replace(/[: ]/g, '-');
+
+  const durationMs = endTime - parseLocalTime(sessionStartTime);
+  const durationSec = Math.floor(durationMs / 1000);
+
+  const data = {
+    start_time: sessionStartTime,
+    duration: durationSec,
+    distance: totalDistance,
+    average_speed: averageSpeed
+  };
+
+  fetch('/save_ride', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename, data })
+  }).then(res => {
+    console.log('已儲存:', res);
+    location.href = '/';
+  });
 }
-
 
 function updateStatus(text) {
   const statusEl = document.getElementById("status");
   if (statusEl) statusEl.textContent = text;
 }
 
-document.getElementById("gpxFile").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (file) loadGpx(file);
-});
+function getLocalTimeString() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const MM = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}`;
+}
 
-window.onload = initMap;
+function parseLocalTime(timeStr) {
+  const [datePart, timePart] = timeStr.split(' ');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute, second] = timePart.split(':').map(Number);
+  return new Date(year, month - 1, day, hour, minute, second);
+}
