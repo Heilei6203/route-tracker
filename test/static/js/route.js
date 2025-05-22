@@ -176,7 +176,7 @@ function startTracking() {
       }
     }
 
-    const onRoute = google.maps.geometry.poly.isLocationOnEdge(position, routePolyline, 0.0001);
+    const onRoute = google.maps.geometry.poly.isLocationOnEdge(position, routePolyline, 0.0002);
     updateStatus(onRoute ? "✅ 在路線上" : "❌ 偏離路線");
   }, (err) => {
     updateStatus("❌ 定位錯誤：" + err.message);
