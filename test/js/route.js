@@ -14,7 +14,7 @@ let totalDistance = 0;
 let averageSpeed = 0;
 
 window.initMap = function () {
-  const polylineStr = localStorage.getItem("direction_polyline");
+  const polylineStr = "e_wwCspwdVUzI";
   if (!polylineStr) {
     updateStatus("❌ 無法載入路線資料");
     return;
