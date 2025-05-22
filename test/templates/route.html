@@ -1,30 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
   <title>Route Tracker</title>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT_f5STZZcZJ94omUsIfjYMNuKCWZe-QY&libraries=geometry"></script>
+
   <link rel="stylesheet" href="/static/css/style.css">
   <style>
-    #map { height: 90vh; width: 100%; }
-    #controls {
-      padding: 10px;
-      text-align: center;
-      background: #f0f0f0;
-    }
-    #status {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-  </style>
+  #map { height: 90vh; width: 100%; }
+
+  #controls {
+    padding: 10px;
+    text-align: center;
+    background: #f0f0f0;
+  }
+
+  #controls button {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin: 5px;
+  }
+
+  #status {
+    margin-top: 10px;
+    font-weight: bold;
+  }
+</style>
 </head>
 <body>
+  <h1>路段資訊</h1>
+  <p id="info">載入中...</p>
+
   <div id="controls">
-  <input type="file" id="gpxFile" accept=".gpx" />
   <button id="toggleBtn" onclick="toggleTracking()">開始</button>
-  <button id="endBtn" onclick="endSession()" style="display:none;">結束訓練</button>
-  <button id="locateBtn" onclick="relocateUser()">🔄 重新定位</button>
-  <button id="targetBtn" onclick="relocateRoute()">🎯 目標路線</button>
+  <button id="endBtn" onclick="endSession()">結束訓練</button>
 
   <div id="status" style="margin-top:10px;">尚未啟動</div>
   <div id="stats" style="margin-top:10px;">
@@ -33,7 +41,42 @@
     🚴‍♂️ 平均速度：<span id="avgSpeed">0.0</span> km/h
   </div>
 </div>
+  </div>
+
   <div id="map"></div>
-  <script src="/static/js/route.js" defer></script>
+
+  <!-- ✅ 載入 route.js（裡面已定義 window.initMap）-->
+  <script src="/static/js/route.js"></script>
+
+  <!-- ✅ 載入 Google Maps，無 callback，自行等載入完成後呼叫 initMap -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT_f5STZZcZJ94omUsIfjYMNuKCWZe-QY&libraries=geometry"
+    async defer></script>
+
+  <!-- ✅ 等地圖載入完成後啟動 -->
+  <script>
+    window.addEventListener("load", () => {
+      const waitForGoogle = setInterval(() => {
+        if (window.google && window.google.maps && window.google.maps.Map) {
+          clearInterval(waitForGoogle);
+          window.initMap();
+        }
+      }, 100);
+    });
+  </script>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+  const distance = localStorage.getItem("segment_distance_km");
+  console.log("讀取 distance:", distance);
+
+  const info = document.getElementById("info");
+  if (distance) {
+    info.innerHTML = `<p>距離：${distance} km</p>`;
+  } else {
+    info.textContent = "缺少資料。";
+  }
+});
+  </script>
 </body>
 </html>
